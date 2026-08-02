@@ -50,32 +50,43 @@ BM25 關鍵字搜尋，再由 RRF 合併兩邊排名；如果 BM25 暫時無法�
 ## 🛠️ 系統架構
 
 ```mermaid
-flowchart LR
+flowchart TD
     U["一般使用者<br/>輸入繁體中文問題"]
-    UI["Streamlit<br/>聊天與管理介面"]
-    A["病理科 AI Agent<br/>判斷問題類型"]
-    T["Agent Tool<br/>選擇搜尋方式"]
+    UI["Streamlit<br/>輸入問題與顯示結果"]
+    A["病理科 AI Agent<br/>安排回答流程"]
+    M1["Ollama Chat Model（第一次呼叫）<br/>判斷是否需要文件工具"]
+    T["Agent Tool<br/>執行文件搜尋"]
     V["Chroma<br/>向量搜尋"]
     B["BM25<br/>Jieba＋自訂詞典"]
     F["RRF<br/>合併兩邊排名"]
-    L["Ollama Chat Model<br/>整理文件內容"]
-    R["回答、來源片段<br/>與執行紀錄"]
+    D["排序後的文件片段"]
+    M2["同一個 Ollama Chat Model（再次呼叫）<br/>根據文件片段整理回答"]
+    ANS["最終回答"]
+    LOG["Agent 執行紀錄"]
     P["Phoenix<br/>選用的執行追蹤"]
 
     U --> UI
     UI --> A
-    A --> T
+    A --> M1
+    M1 -->|需要文件| T
+    M1 -->|一般對話| ANS
     T --> V
     T --> B
     V --> F
     B --> F
-    F --> A
-    A --> L
-    L --> R
-    R --> UI
-    A -.-> P
-    T -.-> P
-    L -.-> P
+    F --> D
+    D --> M2
+    M2 --> ANS
+    ANS --> UI
+    D -->|來源片段| UI
+    A --> LOG
+    T --> LOG
+    LOG --> UI
+    A -.->|追蹤| P
+    T -.->|追蹤| P
+    F -.->|追蹤| P
+    M1 -.->|追蹤| P
+    M2 -.->|追蹤| P
 ```
 
 Chroma 擅長尋找意思相近的內容，BM25 擅長尋找明確關鍵字，RRF 則依
