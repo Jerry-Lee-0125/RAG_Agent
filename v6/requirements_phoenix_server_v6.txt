@@ -1,0 +1,3 @@
+
+# 請建立獨立的 .phoenix-venv，不要和 RAG 應用程式共用虛擬環境。
+arize-phoenix==18.0.0
